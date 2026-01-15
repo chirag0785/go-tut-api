@@ -17,11 +17,12 @@ func PostsCreate(c *gin.Context) {
 	//Get data off req body
 
 	val, _ := c.Get("body")
+	user_id, _ := c.Get("user_id")
 
 	bodyData, _ := val.(*dto.PostCreateDTO)
 	//create post
 
-	post := models.Post{Title: bodyData.Title, Body: bodyData.Body}
+	post := models.Post{Title: bodyData.Title, Body: bodyData.Body, UserID: user_id.(uint)}
 
 	result := initializers.DB.Create(&post)
 
@@ -39,7 +40,7 @@ func PostsCreate(c *gin.Context) {
 func PostsIndex(c *gin.Context) {
 
 	//get the posts
-	
+
 	var posts []models.Post
 
 	result := initializers.DB.Find(&posts)
@@ -88,6 +89,8 @@ func PostsUpdate(c *gin.Context) {
 	
 	//Get id off url
 
+	user_id, _ := c.Get("user_id")
+
 	id := c.Param("id")
 	var body dto.PostUpdateDTO
 
@@ -115,6 +118,13 @@ func PostsUpdate(c *gin.Context) {
 		return
 	}
 
+	if post.UserID != user_id.(uint) {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "you are not allowed to update this post",
+		})
+		return
+	}
+
 	if body.Title != nil {
 		post.Title= *body.Title
 	}
@@ -133,7 +143,34 @@ func PostsDelete(c * gin.Context) {
 
 	//Get id off url
 
+	user_id, _ := c.Get("user_id")
+
 	id := c.Param("id")
+
+	var post models.Post
+
+	result := initializers.DB.First(&post,id)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": result.Error.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError,gin.H{
+			"error": result.Error.Error(),
+		})
+		return
+	}
+	
+	if post.UserID != user_id.(uint) {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "you are not allowed to delete this post",
+		})
+		return
+	}
 
 	results := initializers.DB.Delete(&models.Post{},id)
 
@@ -155,4 +192,23 @@ func PostsDelete(c * gin.Context) {
 		"message": "post deleted successfully",
 	})
 
+}
+
+func PostsUserPosts(c *gin.Context) {
+	//get user id from context
+	user_id, _ := c.Get("user_id")
+
+	var posts []models.Post
+
+	result := initializers.DB.Where(models.Post{UserID: user_id.(uint)}).Find(&posts)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"posts": posts,
+	})
 }

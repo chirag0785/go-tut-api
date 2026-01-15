@@ -14,10 +14,15 @@ func init() {
 }
 func main() {
   r := gin.Default()
-  r.POST("/posts", middleware.ValidatePost(), controllers.PostsCreate)
+  r.POST("/posts", middleware.Authenticate(), middleware.ValidatePost(), controllers.PostsCreate)
   r.GET("/posts", controllers.PostsIndex)
-  r.GET("/posts/:id", controllers.PostsShow)
-  r.POST("/posts/:id",controllers.PostsUpdate)
-  r.DELETE("/posts/:id",controllers.PostsDelete)
+  r.GET("/posts/:id", middleware.Authenticate(), controllers.PostsShow)
+  r.POST("/posts/:id", middleware.Authenticate(), controllers.PostsUpdate)
+  r.DELETE("/posts/:id", middleware.Authenticate(), controllers.PostsDelete)
+
+  r.POST("/users", controllers.UsersCreate)
+  r.POST("/users/login", controllers.UsersLogin)
+
+  r.GET("/posts/me",middleware.Authenticate(),controllers.PostsUserPosts)
   r.Run()
 }
