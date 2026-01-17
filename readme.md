@@ -1,4 +1,4 @@
-# Project Name
+# Blog API with Golang, GORM, and PostgreSQL
 
 A RESTful API built with Golang, GORM, and PostgreSQL featuring user authentication and CRUD operations for posts.
 
@@ -10,7 +10,6 @@ A RESTful API built with Golang, GORM, and PostgreSQL featuring user authenticat
 - [Environment Variables](#environment-variables)
 - [Docker](#docker)
 - [Database](#database)
-- [License](#license)
 
 ## About
 
@@ -71,5 +70,3 @@ Instructions for building and running the Docker containers.
 ## Database
 The project uses PostgreSQL as the database. Ensure that the PostgreSQL container is running before starting the application. Database migrations will be run automatically if `RUN_MIGRATIONS` is set to `true` in the `.env` file.
 
-## License
-Specify the license (if any).
