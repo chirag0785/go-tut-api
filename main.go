@@ -1,16 +1,26 @@
 package main
 
 import (
+	"log"
+	"os"
+
 	"github.com/chirag0785/go-tut-api/controllers"
 	"github.com/chirag0785/go-tut-api/initializers"
 	"github.com/chirag0785/go-tut-api/middleware"
+	"github.com/chirag0785/go-tut-api/migrate"
 
 	"github.com/gin-gonic/gin"
 )
 
 func init() {
 	initializers.LoadEnvVariables()
-	initializers.ConnectToDB() 
+	initializers.ConnectToDB()
+
+	if os.Getenv("RUN_MIGRATIONS") == "true" {
+		if err := migrate.MigrateToDB(); err != nil {
+			log.Fatal("Failed to migrate database:", err)
+		}
+	}
 }
 func main() {
   r := gin.Default()
